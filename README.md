@@ -111,14 +111,6 @@ Tests: 36 backend + 7 frontend, all passing.
 
 Wanted to verify that plain RAG actually misbehaves on off-topic input. Ran [`scripts/compare_baseline.py`](scripts/compare_baseline.py) on 10 queries (4 on-topic, 6 off-topic) against the same Groq model.
 
-| Metric | Plain RAG | RouteLM |
-|---|---|---|
-| Off-topic with source citations | 6 / 6 | 0 / 6 |
-| Off-topic that triggered LLM call | 6 / 6 | 0 / 6 |
-| Off-topic leak rate (>200 chars + citations) | 100% | 0% |
-| On-topic answered substantively | 4 / 4 | 4 / 4 |
-| Avg off-topic latency | ~1.1 s | ~0.48 s |
-
 Raw: [`eval/baseline_comparison.json`](eval/baseline_comparison.json).
 
 On-topic side they're tied. The gap is all on off-topic. Plain RAG always returns 5 source chunks even for off-topic questions, which the UI would render as "Sources: 5 chunks" attached to a non-answer. That's the bad kind of leak because at a glance it looks grounded.
