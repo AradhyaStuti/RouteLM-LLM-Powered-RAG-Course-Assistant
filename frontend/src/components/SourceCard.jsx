@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Video, Clock, BarChart3, BookOpen } from 'lucide-react';
+import { Video, FileText, Clock, BarChart3, BookOpen } from 'lucide-react';
 
 function formatTime(seconds) {
   const s = Math.max(0, Math.floor(seconds || 0));
@@ -31,26 +31,32 @@ export default memo(function SourceCard({ sources }) {
         )}
       </div>
       <div className="source-chips">
-        {sources.map((s) => {
-          const videoNum = s.video ?? 0;
+        {sources.map((s, idx) => {
+          const num = s.number ?? '';
+          const isVideo = s.has_timestamps === true;
           const score = Math.round((s.similarity ?? 0) * 100);
-          const key = `v${videoNum}-${s.start ?? 0}-${s.end ?? 0}-${(s.text || '').slice(0, 20)}`;
+          const key = `${s.course_id || 'c'}-${num}-${idx}-${(s.text || '').slice(0, 20)}`;
+          const label = s.title || (isVideo ? `Video ${num}` : `Section ${num}`);
 
           return (
             <div key={key} className="source-chip">
               <div className="source-top">
                 <div className="source-badge">
-                  <Video size={11} aria-hidden="true" />
-                  <span>Video {videoNum}</span>
+                  {isVideo
+                    ? <Video size={11} aria-hidden="true" />
+                    : <FileText size={11} aria-hidden="true" />}
+                  <span>{label}</span>
                 </div>
                 <span className={`source-score ${score >= 70 ? 'high' : score >= 50 ? 'mid' : 'low'}`}>
                   {score}%
                 </span>
               </div>
-              <div className="source-time">
-                <Clock size={10} aria-hidden="true" />
-                {formatTime(s.start)} - {formatTime(s.end)}
-              </div>
+              {isVideo && (
+                <div className="source-time">
+                  <Clock size={10} aria-hidden="true" />
+                  {formatTime(s.start)} - {formatTime(s.end)}
+                </div>
+              )}
               {s.text && <p className="source-text">{s.text.slice(0, 100)}</p>}
             </div>
           );

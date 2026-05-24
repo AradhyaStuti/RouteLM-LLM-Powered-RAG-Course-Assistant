@@ -72,15 +72,34 @@ class EmbeddingService:
         embeddings_list = []
 
         for _, row in self.df.iterrows():
+            # Two chunk shapes share the same FAISS index:
+            #   - Video transcripts (ML course): integer `number` + start/end.
+            #   - Written notes (GenAI, DS): no timestamps.
+            # `has_timestamps` tells the UI and the prompt formatter which
+            # citation style to render.
+            number_raw = row.get("number")
+            try:
+                number = int(number_raw)
+            except (TypeError, ValueError):
+                number = str(number_raw) if number_raw is not None else ""
+
+            start_raw = row.get("start")
+            end_raw = row.get("end")
+            has_timestamps = start_raw is not None and end_raw is not None
+
+            metadata = {
+                "number": number,
+                "title": row.get("title", ""),
+                "course_id": row.get("course_id", DEFAULT_COURSE_ID),
+                "has_timestamps": has_timestamps,
+            }
+            if has_timestamps:
+                metadata["start"] = round(float(start_raw), 1)
+                metadata["end"] = round(float(end_raw), 1)
+
             doc = Document(
                 page_content=row["text"].strip(),
-                metadata={
-                    "video": int(row["number"]),
-                    "title": row.get("title", ""),
-                    "start": round(float(row["start"]), 1),
-                    "end": round(float(row["end"]), 1),
-                    "course_id": row.get("course_id", DEFAULT_COURSE_ID),
-                },
+                metadata=metadata,
             )
             documents.append(doc)
             embeddings_list.append(row["embedding"])
@@ -121,15 +140,19 @@ class EmbeddingService:
         for doc, score in docs_and_scores:
             if course_id and doc.metadata.get("course_id") != course_id:
                 continue
-            results.append({
-                "video": doc.metadata.get("video", 0),
-                "title": doc.metadata.get("title", ""),
-                "start": doc.metadata.get("start", 0),
-                "end": doc.metadata.get("end", 0),
-                "course_id": doc.metadata.get("course_id", DEFAULT_COURSE_ID),
+            md = doc.metadata
+            result = {
+                "number": md.get("number", ""),
+                "title": md.get("title", ""),
+                "course_id": md.get("course_id", DEFAULT_COURSE_ID),
                 "text": doc.page_content,
                 "similarity": round(float(score), 3),
-            })
+                "has_timestamps": md.get("has_timestamps", False),
+            }
+            if md.get("has_timestamps"):
+                result["start"] = md.get("start", 0)
+                result["end"] = md.get("end", 0)
+            results.append(result)
             if len(results) >= top_k:
                 break
 

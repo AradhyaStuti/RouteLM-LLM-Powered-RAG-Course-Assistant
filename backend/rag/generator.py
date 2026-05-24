@@ -157,14 +157,26 @@ FAILURE_MESSAGE = (
 
 
 def format_context(sources: list[dict]) -> str:
+    """Render retrieved chunks for the RAG prompt.
+
+    Video-transcript chunks render with a `[Video N | Ss - Ss | Relevance: X]`
+    header so the LLM can cite a timestamp. Written-note chunks render with a
+    `[<title or "Section N"> | Relevance: X]` header — no timestamp because
+    there isn't one.
+    """
     lines = []
     for s in sources:
-        video = s.get("video", "?")
-        start = s.get("start", 0)
-        end = s.get("end", 0)
+        # `video` is the legacy key from the original single-course shape.
+        number = s.get("number", s.get("video", "?"))
+        title = s.get("title", "")
         sim = s.get("similarity", 0)
         text = s.get("text", "")
-        lines.append(f"[Video {video} | {start}s - {end}s | Relevance: {sim}]\n{text}")
+        if s.get("has_timestamps") and "start" in s and "end" in s:
+            header = f"[Video {number} | {s['start']}s - {s['end']}s | Relevance: {sim}]"
+        else:
+            label = title or f"Section {number}"
+            header = f"[{label} | Relevance: {sim}]"
+        lines.append(f"{header}\n{text}")
     return "\n\n".join(lines)
 
 
