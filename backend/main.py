@@ -8,12 +8,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from backend.config import EMBED_MODEL, LLM_MODEL, LLM_PROVIDER
+from backend.limiter import limiter
 from backend.rag.embeddings import embedding_service
 from backend.db.store import init_db
 from backend.auth.security import init_auth_db, ensure_demo_user
@@ -24,11 +23,6 @@ from backend.routes.conversations import router as conv_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 request_logger = logging.getLogger("backend.requests")
-
-limiter = Limiter(
-    key_func=get_remote_address,
-    enabled=os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true",
-)
 
 def startup():
     init_db()

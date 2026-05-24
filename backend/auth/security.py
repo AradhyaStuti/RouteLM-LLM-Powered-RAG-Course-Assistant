@@ -4,7 +4,6 @@ import sqlite3
 import uuid
 import logging
 from datetime import datetime, timedelta, timezone
-from contextlib import contextmanager
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -12,7 +11,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 
-from backend.config import DB_PATH, JWT_SECRET
+from backend.config import JWT_SECRET
+from backend.db.store import get_conn
 
 logger = logging.getLogger(__name__)
 
@@ -40,22 +40,8 @@ class TokenResponse(BaseModel):
     username: str
 
 
-@contextmanager
-def _get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
-
 def init_auth_db():
-    with _get_conn() as conn:
+    with get_conn() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -72,7 +58,7 @@ def create_user(username: str, password: str) -> dict:
     now = datetime.now(timezone.utc).isoformat()
     password_hash = pwd_context.hash(password)
 
-    with _get_conn() as conn:
+    with get_conn() as conn:
         try:
             conn.execute(
                 "INSERT INTO users (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)",
@@ -90,7 +76,7 @@ def ensure_demo_user(password: str, username: str = "demo") -> None:
 
     Called from startup when SEED_DEMO_USER=true. No-op if the user already exists.
     """
-    with _get_conn() as conn:
+    with get_conn() as conn:
         existing = conn.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone()
         if existing:
             return
@@ -103,7 +89,7 @@ def ensure_demo_user(password: str, username: str = "demo") -> None:
 
 
 def authenticate_user(username: str, password: str) -> dict | None:
-    with _get_conn() as conn:
+    with get_conn() as conn:
         row = conn.execute(
             "SELECT * FROM users WHERE username = ?", (username,)
         ).fetchone()

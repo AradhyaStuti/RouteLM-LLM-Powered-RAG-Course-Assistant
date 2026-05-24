@@ -1,10 +1,8 @@
 """Register and login endpoints (rate-limited)."""
 
 from fastapi import APIRouter, HTTPException, Request
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
-from backend.config import RATE_LIMIT_ENABLED
+from backend.limiter import limiter
 from backend.auth.security import (
     RegisterRequest,
     LoginRequest,
@@ -14,7 +12,6 @@ from backend.auth.security import (
     create_access_token,
 )
 
-limiter = Limiter(key_func=get_remote_address, enabled=RATE_LIMIT_ENABLED)
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 

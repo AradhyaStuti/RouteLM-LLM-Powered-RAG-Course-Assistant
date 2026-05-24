@@ -31,11 +31,11 @@ LLM_TIMEOUT = 300
 MAX_MESSAGE_LENGTH = 2000
 MAX_TITLE_LENGTH = 200
 
-# Cosine-similarity gates between query and the course centroid.
+# Default routing thresholds. Each course in data/courses.json can override
+# these — the per-course values are what the classifier actually uses at
+# runtime. These defaults only apply when a course entry is missing one.
 COURSE_THRESHOLD = float(os.getenv("COURSE_THRESHOLD", "0.58"))
-GENERAL_THRESHOLD = float(os.getenv("GENERAL_THRESHOLD", "0.55"))
-
-RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true"
+GENERAL_THRESHOLD = float(os.getenv("GENERAL_THRESHOLD", "0.50"))
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 if not JWT_SECRET:
