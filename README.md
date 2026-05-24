@@ -1,6 +1,6 @@
 # RouteLM
 
-LLM course assistant that routes questions before doing RAG. A small classifier picks one of three paths (RAG, LLM-only, or refuse) before retrieval ever runs. Per-course thresholds, FAISS-backed, LangGraph wiring.
+LLM course assistant that classifies a question before retrieval. The classifier sends the query to one of three paths: RAG with citations, LLM-only, or a fixed refusal. Off-topic questions never reach the retrieval pipeline at all.
 
 LLM is hosted (Groq), embeddings are hosted (Ollama). Everything around them I built myself - routing, retrieval, multi-corpus indexing, the React UI, the reliability layer, the eval.
 
@@ -10,7 +10,9 @@ Demo login: `demo` / password from `DEMO_USER_PASSWORD` (auto-seeded with `SEED_
 
 ## Why
 
-Plain-RAG chat apps fail in obvious ways. Ask anything off-topic and they cheerfully return five "Sources" attached to a fake answer. Retrieval has no idea whether the question even belongs in the corpus. So I made routing the first step instead of a filter bolted on top.
+Plain RAG chatbots felt confidently wrong in a very specific way. Ask something off-topic and they'd still retrieve chunks and attach "Sources" to an answer that wasn't grounded at all. That's worse than being wrong, because it looks correct.
+
+The actual problem is that retrieval has no idea whether a question even belongs to the corpus. So instead of "retrieve then hope," I flipped it - decide first, then act. Make relevance a first-class step, not something assumed after the fact.
 
 Three paths:
 
@@ -50,9 +52,11 @@ Defaults around 0.58-0.60 / 0.50, calibrated for `bge-m3`.
 
 ## Why max-anchor and not centroid
 
-First version averaged anchor embeddings into a centroid per course. Worked fine for the original ML course (19 anchors, all about supervised learning). It collapsed the moment I added the GenAI course (31 anchors spanning LLM internals, RAG, LangChain APIs, production). The centroid landed in some meaningless midpoint and legit queries scored 0.48 alongside actually off-topic ones at 0.50.
+First version represented each course as a centroid - the average embedding of all its anchor phrases. Worked fine when the course was narrow, like Andrew Ng's ML (19 anchors all about supervised learning). It broke once I added broader domains like the GenAI course, where 31 anchors span LLM internals, RAG, LangChain APIs and production stuff.
 
-Switched to max over anchors. Real matches now hit 0.65-0.85, off-topic stays under 0.50, scores are clearly bimodal.
+The centroid collapsed into a semantic middle. Real queries and off-topic queries ended up with similar scores, around 0.48-0.50 - no clean separation.
+
+Switched to max similarity over anchors. Compare the query against each anchor, take the highest score. That fixed it: real matches jumped to 0.65-0.85, off-topic stayed under 0.50. Clean bimodal split.
 
 ## Architecture
 
@@ -81,10 +85,10 @@ Each node is a Python function reading/writing a `TypedDict`. The conditional ed
 - LLM: Groq `llama-3.3-70b-versatile`, fallback Ollama `llama3.2`
 - Embeddings: `bge-m3` via Ollama, FAISS index
 - JWT + bcrypt auth
-- WebSocket primary, SSE fallback
+- WebSocket primary, SSE fallback (both transports tested)
 - Circuit breaker on the LLM (3 fails -> 30s cooldown -> half-open)
-- Rate limits via slowapi: 5/min register, 10/min login, 20/min chat
-- Tests: pytest (36) + Vitest (7)
+- Rate limits via slowapi: 5/min register, 10/min login, 20/min chat (one shared limiter across all routes)
+- Tests: pytest backend + Vitest frontend; all passing locally. CI runs the embedding-free subset (the rest skip via `@requires_embeddings` when Ollama isn't reachable).
 
 ## Results
 
@@ -105,7 +109,7 @@ End-to-end with real Groq:
 | "What is RAG and why use it?" | genai-rag-langchain | 5 | 1.25 s |
 | "What is gradient descent?" | ml-andrew-ng-c1 | 5 | 1.07 s |
 
-Tests: 36 backend + 7 frontend, all passing.
+All tests passing locally. In CI the embedding-dependent tests skip because Ollama isn't reachable from the runner.
 
 ## Plain RAG vs RouteLM
 
@@ -114,6 +118,8 @@ Wanted to verify that plain RAG actually misbehaves on off-topic input. Ran [`sc
 Raw: [`eval/baseline_comparison.json`](eval/baseline_comparison.json).
 
 On-topic side they're tied. The gap is all on off-topic. Plain RAG always returns 5 source chunks even for off-topic questions, which the UI would render as "Sources: 5 chunks" attached to a non-answer. That's the bad kind of leak because at a glance it looks grounded.
+
+The off-topic leak rate going from 100% to 0% without hurting on-topic performance is the part I'm actually proud of. The router changes system behaviour in a measurable way.
 
 ## Setup
 
@@ -150,6 +156,12 @@ docker compose up
 docker compose exec ollama ollama pull bge-m3   # first run only
 ```
 
+Set `LLM_PROVIDER=groq` + `GROQ_API_KEY=...` in `.env` if you want generation via Groq. Embeddings always go through the Ollama container.
+
+## Render deploy (heads up)
+
+[`render.yaml`](render.yaml) is a Render blueprint, but it isn't deployable as-is. The embedding service always calls Ollama, so you need either a reachable Ollama endpoint (set `OLLAMA_URL` in the dashboard) or you have to swap the embedder for a hosted one in [`backend/rag/embeddings.py`](backend/rag/embeddings.py). The blueprint has a comment block explaining this.
+
 ## API
 
 | | |
@@ -164,11 +176,11 @@ docker compose exec ollama ollama pull bge-m3   # first run only
 ## Tests
 
 ```bash
-pytest tests/             # 36 backend tests
-cd frontend && npm test   # 7 frontend tests
+pytest tests/             # backend
+cd frontend && npm test   # frontend (Vitest)
 ```
 
-`@requires_embeddings` tests skip when Ollama isn't reachable, so CI stays green without a model.
+`@requires_embeddings` tests skip when Ollama isn't reachable or `embeddings.joblib` is missing, so CI stays green without a model running.
 
 ## Adding a new course
 
@@ -197,11 +209,14 @@ Restart picks it up. Each retrieved chunk carries its `course_id`, so the UI can
 
 ## Things I'd build next
 
+The static per-course thresholds work, but they're rigid in the edge cases. The next thing I'd add is a second-stage decision (a small LLM or a reranker) when two course scores are within 0.02 of each other - that's where the threshold approach is weakest.
+
+After that:
+
 - BGE-Reranker between FAISS and the LLM
 - Hybrid search (BM25 + dense, RRF)
 - Live ingestion endpoint - upload PDF/video, transcribe + embed + index without restarting
 - Per-message RAGAS scoring logged into the DB
-- Small LLM as a tiebreaker when two courses score within 0.02 of each other
 
 ## Author
 
