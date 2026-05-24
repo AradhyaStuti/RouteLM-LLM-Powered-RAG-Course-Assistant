@@ -1,8 +1,16 @@
 # Render blueprint. Apply with `render blueprint launch` or via the dashboard.
-# Notes:
-#   - bge-m3 needs ~1.5 GB RAM, so this won't fit on Render's free instance.
-#     The "standard" plan ($7/mo) is the floor; "pro" gives more headroom.
-#   - GROQ_API_KEY and JWT_SECRET must be set in the dashboard, not committed here.
+#
+# IMPORTANT — this blueprint is not deployable as-is. The embedding service
+# always calls Ollama for query embeddings (see backend/rag/embeddings.py),
+# regardless of LLM_PROVIDER. You need ONE of:
+#   1. A reachable Ollama instance (set OLLAMA_URL below to its URL), or
+#   2. Swap OllamaEmbeddings for a hosted embedder (Cohere, Voyage, OpenAI)
+#      in backend/rag/embeddings.py.
+# Without one of these, every chat request will fail at the embedding step.
+#
+# Plan note: bge-m3 needs ~1.5 GB RAM if you self-host Ollama, so the free
+# tier won't fit. Standard ($7/mo) is the floor.
+# Secrets (GROQ_API_KEY, DEMO_USER_PASSWORD) must be set in the dashboard.
 
 services:
   - type: web
@@ -15,6 +23,9 @@ services:
         value: groq
       - key: GROQ_API_KEY
         sync: false                    # set in dashboard, never in repo
+      # Point this at your Ollama endpoint or remove and swap embedders in code.
+      - key: OLLAMA_URL
+        sync: false                    # set in dashboard
       - key: JWT_SECRET
         generateValue: true            # render auto-generates a long random value
       - key: ALLOWED_ORIGINS
