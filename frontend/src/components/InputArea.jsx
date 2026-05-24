@@ -53,7 +53,7 @@ export default memo(function InputArea({ onSend, disabled, onCancel, inputRef, f
           value={text}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          placeholder="Ask anything about the ML course..."
+          placeholder="Ask about ML, the LLM/RAG stack, or Python data science..."
           aria-label="Type your question"
           rows={1}
           disabled={disabled}

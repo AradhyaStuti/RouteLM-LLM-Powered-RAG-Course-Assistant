@@ -2,9 +2,9 @@ import { Sparkles, Brain, Workflow, ArrowRight, LogOut } from 'lucide-react';
 import RobotMascot from './RobotMascot';
 
 const features = [
-  { icon: <Brain size={18} />, title: 'RAG Pipeline', desc: 'Retrieves exact video timestamps' },
-  { icon: <Workflow size={18} />, title: 'LangGraph Agent', desc: 'Multi-step reasoning graph' },
-  { icon: <Sparkles size={18} />, title: 'Smart Answers', desc: 'Context-aware LLM responses' },
+  { icon: <Brain size={18} />, title: 'RAG Pipeline', desc: 'Grounded answers with source citations' },
+  { icon: <Workflow size={18} />, title: 'LangGraph Router', desc: 'Classify → retrieve / direct / refuse' },
+  { icon: <Sparkles size={18} />, title: 'Multi-Corpus', desc: 'Three courses, per-corpus thresholds' },
 ];
 
 const techStack = ['LangChain', 'LangGraph', 'FAISS', 'Groq', 'Ollama'];

@@ -90,7 +90,7 @@ export default function AuthScreen({ onLogin, onRegister, error, loading }) {
         </form>
 
         <div className="auth-footer">
-          <span>LangChain + LangGraph + FAISS + Ollama + LLaMA 3.2</span>
+          <span>LangChain · LangGraph · FAISS · Groq / Ollama</span>
         </div>
       </div>
     </div>

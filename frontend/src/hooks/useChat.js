@@ -100,21 +100,25 @@ export function useChat() {
 
   const dismissError = useCallback(() => setError(null), []);
 
-  const _doStream = useCallback(async (text) => {
+  // Streams one turn. `appendUser` controls whether to also append the user
+  // bubble (sendMessage/retryLast do; regenerateLast doesn't because it's
+  // re-running the existing last query).
+  const _runTurn = useCallback(async (text, { appendUser }) => {
     setError(null);
     lastUserMsgRef.current = text;
 
-    const userMsg = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: text,
-      sources: [],
-      timestamp: new Date().toISOString(),
-    };
-
-    dispatch({ type: 'append', message: userMsg });
-    setIsStreaming(true);
-    setActiveNode('classify');
+    if (appendUser) {
+      dispatch({
+        type: 'append',
+        message: {
+          id: crypto.randomUUID(),
+          role: 'user',
+          content: text,
+          sources: [],
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
 
     dispatch({
       type: 'append',
@@ -127,6 +131,9 @@ export function useChat() {
       },
     });
 
+    setIsStreaming(true);
+    setActiveNode('classify');
+
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -138,7 +145,6 @@ export function useChat() {
           setConversationId(data.conversation_id);
           convIdRef.current = data.conversation_id;
         }
-
         if (data.node) setActiveNode(data.node);
         if (data.sources) dispatch({ type: 'update_last', fields: { sources: data.sources } });
         if (data.token) dispatch({ type: 'append_token', token: data.token });
@@ -156,7 +162,7 @@ export function useChat() {
       if (err.name === 'AbortError') {
         dispatch({ type: 'update_last', fields: { content: '*[Cancelled]*' } });
       } else {
-        const errorMsg = 'Connection failed. Make sure the server and Ollama are running.';
+        const errorMsg = 'Connection failed. Check that the backend is reachable and the LLM provider is configured.';
         dispatch({ type: 'update_last', fields: { content: errorMsg, failed: true } });
         setError(errorMsg);
         console.error('Chat stream error:', err);
@@ -170,14 +176,14 @@ export function useChat() {
 
   const sendMessage = useCallback(async (text) => {
     if (!text.trim() || isStreaming) return;
-    await _doStream(text.trim());
-  }, [isStreaming, _doStream]);
+    await _runTurn(text.trim(), { appendUser: true });
+  }, [isStreaming, _runTurn]);
 
   const retryLast = useCallback(async () => {
     if (isStreaming || !lastUserMsgRef.current) return;
     dispatch({ type: 'remove_last_pair' });
-    await _doStream(lastUserMsgRef.current);
-  }, [isStreaming, _doStream]);
+    await _runTurn(lastUserMsgRef.current, { appendUser: true });
+  }, [isStreaming, _runTurn]);
 
   const regenerateLast = useCallback(async () => {
     if (isStreaming) return;
@@ -185,46 +191,8 @@ export function useChat() {
     if (lastUserIdx === -1) return;
     const lastQuery = messages[lastUserIdx].content;
     dispatch({ type: 'remove_last' });
-    lastUserMsgRef.current = lastQuery;
-
-    setError(null);
-    setIsStreaming(true);
-    setActiveNode('classify');
-
-    dispatch({
-      type: 'append',
-      message: {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: '',
-        sources: [],
-        timestamp: new Date().toISOString(),
-      },
-    });
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      for await (const data of streamChat(lastQuery, convIdRef.current, controller.signal)) {
-        if (controller.signal.aborted) break;
-        if (data.conversation_id) { setConversationId(data.conversation_id); convIdRef.current = data.conversation_id; }
-        if (data.node) setActiveNode(data.node);
-        if (data.sources) dispatch({ type: 'update_last', fields: { sources: data.sources } });
-        if (data.token) dispatch({ type: 'append_token', token: data.token });
-        if (data.error) { dispatch({ type: 'update_last', fields: { content: data.error, failed: true } }); setError(data.error); }
-        if (data.done) { fetchConversations().then(setConversations).catch(() => {}); }
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        dispatch({ type: 'update_last', fields: { content: 'Regeneration failed.', failed: true } });
-      }
-    }
-
-    abortRef.current = null;
-    setIsStreaming(false);
-    setActiveNode(null);
-  }, [isStreaming, messages]);
+    await _runTurn(lastQuery, { appendUser: false });
+  }, [isStreaming, messages, _runTurn]);
 
   return {
     messages,
