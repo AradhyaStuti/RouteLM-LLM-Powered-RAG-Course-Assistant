@@ -8,11 +8,10 @@ import threading
 from fastapi import APIRouter, HTTPException, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from jose import JWTError, jwt
 
-from backend.config import MAX_MESSAGE_LENGTH, RATE_LIMIT_ENABLED, JWT_SECRET
+from backend.config import MAX_MESSAGE_LENGTH, JWT_SECRET
+from backend.limiter import limiter
 from backend.auth.security import get_current_user, ALGORITHM
 from backend.rag.graph import run_graph
 from backend.rag.generator import stream_tokens, stream_direct_tokens, generate_title
@@ -26,14 +25,13 @@ from backend.db.store import (
 
 logger = logging.getLogger(__name__)
 
-limiter = Limiter(key_func=get_remote_address, enabled=RATE_LIMIT_ENABLED)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 OFF_TOPIC_REPLY = (
-    "I appreciate your question, but I'm designed to help with "
-    "**machine learning topics** only. I can answer questions about "
-    "ML concepts, the course videos, and related topics. "
-    "Feel free to ask about those!"
+    "That question is outside what I'm set up to answer. I cover the indexed "
+    "courses only — **Andrew Ng's ML Specialization**, the **LangChain / RAG / "
+    "GenAI stack**, and **Python data science** (NumPy, pandas, scikit-learn). "
+    "Ask me something in those areas and I'll do my best."
 )
 
 
@@ -85,6 +83,63 @@ def _pick_token_stream(query_type: str, query: str, sources: list[dict], history
     return stream_tokens(query, sources, history)
 
 
+def _stream_events(
+    *,
+    conv_id: str,
+    query: str,
+    sources: list[dict],
+    query_type: str,
+    history: list[dict],
+    is_first_message: bool,
+    transport: str,
+):
+    """Yield wire-format events for one chat turn.
+
+    Side-effects (persisting messages, kicking off the title-gen thread,
+    logging) happen inline. Both the SSE and WS handlers iterate this and
+    emit each dict on their respective transport — that's the only
+    transport-specific concern.
+    """
+    stream_start = time.time()
+
+    yield {"conversation_id": conv_id}
+    yield {"node": "classify", "query_type": query_type}
+
+    if sources:
+        yield {"node": "retrieve", "sources": sources}
+
+    yield {"node": "generate", "streaming": True}
+
+    if query_type == "off_topic":
+        yield {"token": OFF_TOPIC_REPLY}
+        add_message(conv_id, "assistant", OFF_TOPIC_REPLY, [])
+    else:
+        if is_first_message:
+            threading.Thread(
+                target=_generate_title_async,
+                args=(conv_id, query),
+                daemon=True,
+            ).start()
+
+        buf = []
+        count = 0
+        for token in _pick_token_stream(query_type, query, sources, history):
+            buf.append(token)
+            count += 1
+            yield {"token": token}
+
+        response = "".join(buf)
+        add_message(conv_id, "assistant", response, sources)
+
+        logger.info(
+            "generate transport=%s conv=%s type=%s tokens=%d chars=%d time=%ss",
+            transport, conv_id[:8], query_type, count, len(response),
+            round(time.time() - stream_start, 2),
+        )
+
+    yield {"done": True}
+
+
 @router.post("")
 @limiter.limit("20/minute")
 async def chat(request: Request, req: ChatRequest, user: dict = Depends(get_current_user)):
@@ -103,47 +158,19 @@ async def chat(request: Request, req: ChatRequest, user: dict = Depends(get_curr
         raise HTTPException(status_code=500, detail="Failed to process message")
 
     def event_stream():
-        stream_start = time.time()
         try:
-            yield f"data: {json.dumps({'conversation_id': conv_id})}\n\n"
-            yield f"data: {json.dumps({'node': 'classify', 'query_type': query_type})}\n\n"
-
-            if sources:
-                yield f"data: {json.dumps({'node': 'retrieve', 'sources': sources})}\n\n"
-
-            yield f"data: {json.dumps({'node': 'generate', 'streaming': True})}\n\n"
-
-            if query_type == "off_topic":
-                yield f"data: {json.dumps({'token': OFF_TOPIC_REPLY})}\n\n"
-                add_message(conv_id, "assistant", OFF_TOPIC_REPLY, [])
-            else:
-                if is_first_message:
-                    threading.Thread(
-                        target=_generate_title_async,
-                        args=(conv_id, query),
-                        daemon=True,
-                    ).start()
-
-                buf = []
-                count = 0
-                for token in _pick_token_stream(query_type, query, sources, history_for_context):
-                    buf.append(token)
-                    count += 1
-                    yield f"data: {json.dumps({'token': token})}\n\n"
-
-                response = "".join(buf)
-                add_message(conv_id, "assistant", response, sources)
-
-                logger.info(
-                    "generate conv=%s type=%s tokens=%d chars=%d time=%ss",
-                    conv_id[:8], query_type, count, len(response),
-                    round(time.time() - stream_start, 2),
-                )
-
-            yield f"data: {json.dumps({'done': True})}\n\n"
-
+            for event in _stream_events(
+                conv_id=conv_id,
+                query=query,
+                sources=sources,
+                query_type=query_type,
+                history=history_for_context,
+                is_first_message=is_first_message,
+                transport="sse",
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
         except Exception as e:
-            logger.error("Streaming failed: %s", e)
+            logger.error("SSE streaming failed: %s", e)
             yield f"data: {json.dumps({'error': 'Response generation failed'})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
@@ -190,49 +217,22 @@ async def chat_ws(websocket: WebSocket):
                     user, query, data.get("conversation_id"),
                 )
 
-                await websocket.send_json({"conversation_id": conv_id})
-                await websocket.send_json({"node": "classify", "query_type": query_type})
-
-                if sources:
-                    await websocket.send_json({"node": "retrieve", "sources": sources})
-
-                await websocket.send_json({"node": "generate", "streaming": True})
-
-                if query_type == "off_topic":
-                    await websocket.send_json({"token": OFF_TOPIC_REPLY})
-                    add_message(conv_id, "assistant", OFF_TOPIC_REPLY, [])
-                else:
-                    if is_first_message:
-                        threading.Thread(
-                            target=_generate_title_async,
-                            args=(conv_id, query),
-                            daemon=True,
-                        ).start()
-
-                    stream_start = time.time()
-                    buf = []
-                    count = 0
-                    for token in _pick_token_stream(query_type, query, sources, history_for_context):
-                        buf.append(token)
-                        count += 1
-                        await websocket.send_json({"token": token})
-
-                    response = "".join(buf)
-                    add_message(conv_id, "assistant", response, sources)
-
-                    logger.info(
-                        "ws_generate conv=%s type=%s tokens=%d chars=%d time=%ss",
-                        conv_id[:8], query_type, count, len(response),
-                        round(time.time() - stream_start, 2),
-                    )
-
-                await websocket.send_json({"done": True})
+                for event in _stream_events(
+                    conv_id=conv_id,
+                    query=query,
+                    sources=sources,
+                    query_type=query_type,
+                    history=history_for_context,
+                    is_first_message=is_first_message,
+                    transport="ws",
+                ):
+                    await websocket.send_json(event)
 
             except HTTPException as e:
                 await websocket.send_json({"error": e.detail})
             except Exception as e:
                 logger.error("WebSocket chat failed: %s", e)
-                await websocket.send_json({"error": "Response generation failed. Is Ollama running?"})
+                await websocket.send_json({"error": "Response generation failed. Check the backend logs."})
 
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected user=%s", user["username"])

@@ -76,16 +76,13 @@ def routelm(query: str) -> dict:
 
 def is_substantive(answer: str) -> bool:
     """A response counts as a 'substantive answer' (i.e. not a refusal) if it's
-    longer than 200 chars and doesn't lead with our canned refusal language."""
+    longer than 200 chars and isn't our canned refusal."""
     a = answer.strip()
     if len(a) < 200:
         return False
-    refusal_markers = [
-        "I appreciate your question",
-        "I'm designed to help with",
-        "machine learning topics",
-    ]
-    return not any(m in a[:200] for m in refusal_markers)
+    # Match against the canonical refusal — keep this list short so a small
+    # rewording of OFF_TOPIC_REPLY doesn't silently break the metric.
+    return OFF_TOPIC_REPLY[:80] not in a
 
 
 def main():
