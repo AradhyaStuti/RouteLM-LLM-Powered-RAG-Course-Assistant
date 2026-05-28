@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Routes questions before doing RAG (3-corpus, LangGraph + FAISS).
+short_description: Routes questions before RAG. Three corpora, LangGraph.
 ---
 
 # RouteLM
