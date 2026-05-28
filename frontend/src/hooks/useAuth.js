@@ -4,6 +4,19 @@ import { onAuthExpired } from '../api/client';
 const TOKEN_KEY = 'ml_tutor_token';
 const USER_KEY = 'ml_tutor_user';
 
+// FastAPI returns `detail` as a string for HTTPException and as an array of
+// `{loc, msg, ...}` objects for Pydantic validation errors. Normalise both
+// shapes to a single readable string for the UI.
+function extractErrorMessage(body, fallback) {
+  const d = body?.detail;
+  if (!d) return fallback;
+  if (typeof d === 'string') return d;
+  if (Array.isArray(d)) {
+    return d.map(e => e?.msg || JSON.stringify(e)).join('; ');
+  }
+  return fallback;
+}
+
 export function useAuth() {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [username, setUsername] = useState(() => localStorage.getItem(USER_KEY));
@@ -50,7 +63,7 @@ export function useAuth() {
         body: JSON.stringify({ username: user, password: pass }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Registration failed');
+      if (!res.ok) throw new Error(extractErrorMessage(data, 'Registration failed'));
       saveAuth(data);
     } catch (err) {
       setError(err.message);
@@ -69,7 +82,7 @@ export function useAuth() {
         body: JSON.stringify({ username: user, password: pass }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Login failed');
+      if (!res.ok) throw new Error(extractErrorMessage(data, 'Login failed'));
       saveAuth(data);
     } catch (err) {
       setError(err.message);

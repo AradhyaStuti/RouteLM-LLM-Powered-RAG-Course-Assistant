@@ -44,8 +44,10 @@ export default function AuthScreen({ onLogin, onRegister, error, loading }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
+              placeholder="3–30 chars, letters/digits/underscore"
               autoComplete="username"
+              pattern="[a-zA-Z0-9_]+"
+              title="Letters, digits, and underscores only — no spaces, dots, or @"
               minLength={3}
               maxLength={30}
               required
