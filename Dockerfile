@@ -38,6 +38,15 @@ USER appuser
 # runtime container reuses it.
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-m3')"
 
+# Build the FAISS-ready embeddings.joblib from the committed chunk JSON files.
+# Doing this at build time (instead of shipping the binary in git) keeps the
+# repo text-only and aligns the index with the runtime embedder.
+WORKDIR /app/data
+RUN python preprocess_json.py --course ml-andrew-ng-c1     --input jsons.json              --embedder sentence_transformers --replace && \
+    python preprocess_json.py --course genai-rag-langchain --input genai_rag_chunks.json   --embedder sentence_transformers && \
+    python preprocess_json.py --course ds-python-libraries --input ds_python_chunks.json   --embedder sentence_transformers
+WORKDIR /app
+
 EXPOSE 7860
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
