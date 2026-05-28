@@ -1,3 +1,15 @@
+---
+title: RouteLM
+emoji: 🤖
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: Routes questions before doing RAG (3-corpus, LangGraph + FAISS).
+---
+
 # RouteLM
 
 LLM course assistant that classifies a question before retrieval. The classifier sends the query to one of three paths: RAG with citations, LLM-only, or a fixed refusal. Off-topic questions never reach the retrieval pipeline at all.

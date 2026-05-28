@@ -7,17 +7,48 @@ from threading import Lock
 import numpy as np
 import faiss
 import joblib
-from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_core.documents import Document
 
-from backend.config import OLLAMA_URL, EMBED_MODEL, EMBEDDINGS_PATH, TOP_K
+from backend.config import (
+    EMBEDDER,
+    EMBED_MODEL,
+    EMBEDDINGS_PATH,
+    OLLAMA_URL,
+    ST_EMBED_MODEL,
+    TOP_K,
+)
 from backend.rag.courses import DEFAULT_COURSE_ID
 
 logger = logging.getLogger(__name__)
 
 CACHE_MAX_SIZE = 128
+
+
+def _create_embedder():
+    """Build the query-time embedder per `EMBEDDER` config.
+
+    `bge-m3` via Ollama and `BAAI/bge-m3` via sentence-transformers share the
+    same model weights, so the pre-built `embeddings.joblib` (originally built
+    with Ollama) is compatible with the sentence-transformers backend at query
+    time. Small numerical drift is possible but doesn't affect routing.
+    """
+    if EMBEDDER == "sentence_transformers":
+        # Lazy import — only required in this mode, and pulls in torch.
+        from langchain_huggingface import HuggingFaceEmbeddings
+
+        logger.info("Embedder: sentence-transformers (%s)", ST_EMBED_MODEL)
+        return HuggingFaceEmbeddings(
+            model_name=ST_EMBED_MODEL,
+            encode_kwargs={"normalize_embeddings": True},
+        )
+
+    # Default: Ollama
+    from langchain_ollama import OllamaEmbeddings
+
+    logger.info("Embedder: Ollama (%s) at %s", EMBED_MODEL, OLLAMA_URL)
+    return OllamaEmbeddings(model=EMBED_MODEL, base_url=OLLAMA_URL)
 
 
 class LRUCache:
@@ -58,10 +89,7 @@ class EmbeddingService:
         self.df = None
         self.vectorstore = None
         self._cache = LRUCache()
-        self.embeddings = OllamaEmbeddings(
-            model=EMBED_MODEL,
-            base_url=OLLAMA_URL,
-        )
+        self.embeddings = _create_embedder()
 
     def load(self):
         self.df = joblib.load(EMBEDDINGS_PATH)

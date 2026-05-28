@@ -11,7 +11,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from backend.config import EMBED_MODEL, LLM_MODEL, LLM_PROVIDER
+from backend.config import (
+    EMBED_MODEL,
+    EMBEDDER,
+    LLM_MODEL,
+    LLM_PROVIDER,
+    ST_EMBED_MODEL,
+)
 from backend.limiter import limiter
 from backend.rag.embeddings import embedding_service
 from backend.db.store import init_db
@@ -98,12 +104,14 @@ app.include_router(conv_router)
 @app.get("/api/health")
 def health():
     from backend.rag.generator import llm_breaker
+    embedding_model = ST_EMBED_MODEL if EMBEDDER == "sentence_transformers" else EMBED_MODEL
     return {
         "status": "ok",
         "chunks_loaded": len(embedding_service.df) if embedding_service.df is not None else 0,
         "llm_provider": LLM_PROVIDER,
         "llm_model": LLM_MODEL,
-        "embedding_model": EMBED_MODEL,
+        "embedder": EMBEDDER,
+        "embedding_model": embedding_model,
         "cache": embedding_service.cache_stats,
         "llm_circuit_open": llm_breaker.is_open,
     }

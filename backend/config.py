@@ -14,8 +14,14 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")  # "groq" or "ollama"
 
+# Embedder backend: "ollama" (default, needs a running Ollama) or
+# "sentence_transformers" (loads BAAI/bge-m3 in-process — used on HF Spaces
+# and any deployment where Ollama isn't available).
+EMBEDDER = os.getenv("EMBEDDER", "ollama")
+
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "bge-m3")
+ST_EMBED_MODEL = os.getenv("ST_EMBED_MODEL", "BAAI/bge-m3")
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "llama3.2")
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
