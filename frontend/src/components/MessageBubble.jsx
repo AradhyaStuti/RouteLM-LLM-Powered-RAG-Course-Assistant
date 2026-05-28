@@ -22,8 +22,16 @@ export default memo(function MessageBubble({ message, isStreaming, activeNode, i
     });
   };
 
+  // While the assistant is streaming, `aria-busy` tells assistive tech to
+  // hold off announcing the message until it's done — otherwise the parent
+  // `aria-live="polite"` region would read every token append.
   return (
-    <div className={`message ${isUser ? 'user' : 'assistant'}`} role="article">
+    <div
+      className={`message ${isUser ? 'user' : 'assistant'}`}
+      role="article"
+      aria-label={isUser ? 'Your message' : 'RouteLM response'}
+      aria-busy={isStreaming && !isUser ? true : undefined}
+    >
       <div className={`message-avatar ${isUser ? '' : 'robot'}`} aria-hidden="true">
         {isUser ? <User size={16} /> : <RobotAvatar size={30} />}
       </div>

@@ -54,8 +54,9 @@ export function useAuth() {
       saveAuth(data);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [saveAuth]);
 
   const login = useCallback(async (user, pass) => {
@@ -72,8 +73,9 @@ export function useAuth() {
       saveAuth(data);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [saveAuth]);
 
   return { token, username, isAuthenticated, error, loading, register, login, logout };
