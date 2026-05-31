@@ -5,7 +5,7 @@
       "name": "Andrew Ng — Machine Learning Specialization (Course 1)",
       "short": "ML Course 1",
       "course_threshold": 0.60,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "supervised learning",
         "unsupervised learning",
@@ -32,7 +32,7 @@
       "name": "Data Science with Python",
       "short": "DS / Python",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "Python",
         "list comprehension",
@@ -94,7 +94,7 @@
       "name": "GenAI, RAG & the LangChain Stack",
       "short": "GenAI / RAG",
       "course_threshold": 0.60,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "large language model",
         "LLM",
@@ -134,7 +134,7 @@
       "name": "Data Structures",
       "short": "DSA",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "data structures",
         "array",
@@ -169,7 +169,7 @@
       "name": "Algorithms",
       "short": "Algorithms",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "algorithm",
         "time complexity",
@@ -204,7 +204,7 @@
       "name": "Operating Systems",
       "short": "OS",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "operating system",
         "process",
@@ -242,7 +242,7 @@
       "name": "Database Management Systems",
       "short": "DBMS",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "database",
         "DBMS",
@@ -280,7 +280,7 @@
       "name": "Computer Networks",
       "short": "Networks",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "computer networks",
         "OSI model",
@@ -310,14 +310,31 @@
         "firewall",
         "VPN",
         "DDoS",
-        "packet"
+        "packet",
+        "bandwidth",
+        "throughput",
+        "latency",
+        "jitter",
+        "round trip time",
+        "RTT",
+        "packet loss",
+        "QoS",
+        "quality of service",
+        "congestion control",
+        "MTU",
+        "WiFi",
+        "Bluetooth",
+        "WebSocket protocol",
+        "HTTP/2",
+        "HTTP/3",
+        "QUIC"
       ]
     },
     "cs-software-engineering": {
       "name": "Software Engineering",
       "short": "Software Eng",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "software engineering",
         "SDLC",
@@ -354,7 +371,7 @@
       "name": "Artificial Intelligence",
       "short": "AI",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "artificial intelligence",
         "AI",
@@ -390,7 +407,7 @@
       "name": "Compiler Design",
       "short": "Compilers",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "compiler",
         "compiler design",
@@ -429,7 +446,7 @@
       "name": "Cyber Security",
       "short": "CyberSec",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "cyber security",
         "cybersecurity",
@@ -470,7 +487,7 @@
       "name": "Cloud Computing",
       "short": "Cloud",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "cloud computing",
         "IaaS",
@@ -511,7 +528,7 @@
       "name": "Web Development",
       "short": "Web Dev",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "web development",
         "frontend",
@@ -554,7 +571,7 @@
       "name": "Programming Fundamentals",
       "short": "Programming",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.47,
       "anchors": [
         "programming",
         "variables",
