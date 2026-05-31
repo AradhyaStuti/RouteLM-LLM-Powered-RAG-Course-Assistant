@@ -37,11 +37,12 @@ describe('WelcomeScreen', () => {
     expect(screen.getByText('RouteLM')).toBeInTheDocument();
   });
 
-  it('renders suggestion buttons', () => {
+  it('renders subject cards', () => {
     render(<WelcomeScreen onSuggestionClick={() => {}} />);
-    expect(screen.getByText('What is supervised learning?')).toBeInTheDocument();
-    // Hinglish suggestion (gradient descent) — exact match against the new copy.
-    expect(screen.getByText(/Gradient descent ko simple words me samjhao/i)).toBeInTheDocument();
+    // The sliding subject browser should expose every indexed corpus by name.
+    expect(screen.getByText('ML Specialization')).toBeInTheDocument();
+    expect(screen.getByText('Data Structures')).toBeInTheDocument();
+    expect(screen.getByText('Cyber Security')).toBeInTheDocument();
   });
 });
 
