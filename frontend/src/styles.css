@@ -1848,3 +1848,92 @@ body {
   max-width: 720px;
   margin-bottom: 8px;
 }
+
+/* =====================================================================
+   RESPONSIVE PASS — phone, tablet, desktop
+   ===================================================================== */
+
+/* Constrain landing content so slider has room without overflowing */
+.landing-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+.landing-subjects-header,
+.landing-subjects-scroll {
+  max-width: min(720px, 100%);
+  box-sizing: border-box;
+}
+
+/* ---- Tablet (≤ 1024px) ---- */
+@media (max-width: 1024px) {
+  .landing-content { max-width: 92vw; }
+  .landing-title { font-size: 38px; }
+  .landing-subtitle { font-size: 15px; }
+}
+
+/* ---- Large phone / small tablet (≤ 768px) ---- */
+@media (max-width: 768px) {
+  .landing-content { padding: 20px 16px 40px; }
+  .landing-logout { top: 12px; right: 12px; padding: 6px 10px; font-size: 11px; }
+  .landing-title { font-size: 32px; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .landing-subtitle { font-size: 14px; margin-bottom: 22px; }
+  .landing-robot .robot-wrapper svg { width: 130px !important; height: 130px !important; }
+  .landing-start-btn { padding: 12px 24px; font-size: 14px; }
+
+  .landing-features {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .landing-feature { flex: 1 1 220px; max-width: 100%; }
+
+  .subjects-header h3 { font-size: 11px; }
+  .subject-card { flex: 0 0 180px; padding: 12px; }
+  .subject-card-icon { width: 32px; height: 32px; }
+  .subject-card-name { font-size: 12px; }
+  .subject-card-sample { font-size: 11px; }
+}
+
+/* ---- Phone (≤ 480px) ---- */
+@media (max-width: 480px) {
+  .landing-content { padding: 16px 12px 32px; }
+  .landing-title { font-size: 28px; }
+  .landing-subtitle { font-size: 13px; margin-bottom: 18px; line-height: 1.5; }
+  .landing-robot .robot-wrapper svg { width: 110px !important; height: 110px !important; }
+  .landing-start-btn { width: 100%; max-width: 280px; justify-content: center; }
+  .landing-features { gap: 8px; margin-top: 18px; }
+  .landing-feature { flex: 1 1 100%; max-width: 320px; }
+  .landing-tech { gap: 6px; }
+  .landing-tech span { font-size: 10px; padding: 4px 8px; }
+
+  .subjects-header { margin: 18px 0 8px; }
+  .subjects-arrows { display: none; }
+  .subject-card { flex: 0 0 160px; padding: 10px; gap: 4px; }
+  .subject-card-icon { width: 28px; height: 28px; border-radius: 8px; }
+  .subject-card-name { font-size: 12px; }
+  .subject-card-sample { font-size: 10.5px; -webkit-line-clamp: 2; }
+}
+
+/* ---- Small phone (≤ 360px) ---- */
+@media (max-width: 360px) {
+  .landing-title { font-size: 24px; }
+  .subject-card { flex: 0 0 145px; }
+  .input-area { padding: 6px 8px 10px; }
+  .mic-btn, .send-btn { width: 30px; height: 30px; }
+}
+
+/* ---- Chat / input touch-friendly sizing on small screens ---- */
+@media (max-width: 768px) {
+  /* Minimum 40px tap targets on mobile for icon-only buttons */
+  .msg-action-btn { min-height: 32px; padding: 6px 10px; }
+  .send-btn, .mic-btn { width: 36px; height: 36px; }
+  .source-chip { padding: 10px; }
+  .pipeline-status { font-size: 11px; }
+  .voice-error { font-size: 11px; padding: 5px 8px; }
+}
+
+/* ---- Landing slider on very wide screens — don't stretch cards ---- */
+@media (min-width: 1280px) {
+  .landing-subjects-scroll { max-width: 760px; }
+}
