@@ -41,13 +41,27 @@ Per-course thresholds in JSON. When I added more courses each got its own decisi
 
 ## What it covers
 
-| Course | Chunks | Topics |
-|---|---|---|
-| Andrew Ng - ML Specialization (Course 1) | 273 | regression, gradient descent, neural networks |
-| GenAI, RAG & LangChain stack | 37 | transformers, RAG (theory + chunking + RAGAS), LangChain, LangGraph |
-| Data Science with Python | 40 | NumPy, pandas, scikit-learn, EDA, model eval |
+Fifteen indexed corpora across core engineering / CS subjects:
 
-350 chunks total. ML course is real Whisper transcripts of Andrew Ng's videos. The other two I wrote as study notes and they double as the source for the assistant.
+| Subject | Chunks | Sample topics |
+|---|---|---|
+| Andrew Ng - ML Specialization | 273 | regression, gradient descent, neural networks |
+| GenAI, RAG & LangChain stack | 37 | transformers, RAG, LangChain, LangGraph |
+| Data Science with Python | 40 | NumPy, pandas, scikit-learn, EDA, model eval |
+| Data Structures | 34 | arrays, lists, trees, heaps, hash tables, graphs, tries, AVL/RB trees, B+ trees, skip lists, DSU, segment & Fenwick trees, suffix structures, Bloom filters, LRU cache |
+| Algorithms | 34 | Big-O, sorting, DP, greedy, DFS/BFS, Dijkstra, two pointers, sliding window, KMP, Z, Bellman-Ford, SCC, NP-completeness, A*, randomized & approximation |
+| Operating Systems | 34 | processes, threads, scheduling, deadlock, IPC, paging, replacement, file systems, disk scheduling, real-time, COW, signals, working set |
+| DBMS | 34 | relational model, SQL, normalization, ACID, indexes, transactions, NoSQL, CAP, MVCC, WAL, sharding, replication, column stores, query planning |
+| Computer Networks | 34 | OSI, TCP/UDP, IP, DNS, HTTP/2/3, QUIC, TLS, BGP, NAT, DHCP, ARP, ICMP, CDN, anycast, VPN, IPv6, 5G, SDN |
+| Software Engineering | 34 | SDLC, Agile, Git, testing, CI/CD, SOLID, refactoring, DDD, hexagonal, EDA, CQRS, observability, post-mortems, A/B testing |
+| Artificial Intelligence | 34 | search, A*, planning, NLP, vision, MDPs, Q-learning, policy gradients, neural nets, backprop, CNNs, RNNs, GANs, diffusion, transformers, RLHF, alignment |
+| Compiler Design | 34 | lexing, parsing (LL/LR), semantic analysis, type systems, IR/SSA, optimization, register allocation, GC algorithms, JIT, profile-guided opt |
+| Cyber Security | 34 | CIA triad, crypto (sym/asym), hashing, auth, OWASP Top 10, threat modelling, pen testing, CVE/CVSS, ROP, ransomware, zero trust, GDPR, SIEM, IR |
+| Cloud Computing | 34 | IaaS/PaaS/SaaS, virtualization, AWS, Kubernetes, IaC, service mesh, 12-factor, multi-region DR, message queues, lakes/warehouses, GitOps |
+| Web Development | 34 | HTML/CSS/JS, REST, React hooks, SSR/SSG, Next.js, Vite, TypeScript, GraphQL, gRPC, Web Workers, PWA, WCAG, Core Web Vitals, WebAssembly |
+| Programming Fundamentals | 34 | variables, control flow, OOP, recursion, complexity, closures, generators, pattern matching, ADTs, immutability, async/await, memoization |
+
+**~760 chunks total** indexed across the 15 corpora. The ML course is real Whisper transcripts of Andrew Ng's videos; the other 14 I wrote as study notes that double as the source material for the assistant. The classifier routes every question to the right course before retrieval, so off-topic questions can't pull noise from the wrong subject.
 
 ## How routing works
 

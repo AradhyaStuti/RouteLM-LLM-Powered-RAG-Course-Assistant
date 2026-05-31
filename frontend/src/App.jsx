@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Menu } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import AuthScreen from './components/AuthScreen';
@@ -6,7 +6,6 @@ import LandingScreen from './components/LandingScreen';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import ToastHost from './components/Toast';
-import { pushToast } from './lib/toast';
 import { useAuth } from './hooks/useAuth';
 import { useChat } from './hooks/useChat';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -22,15 +21,9 @@ function ChatApp({ username, onBack }) {
 
   const inputRef = useRef(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const lastErrorRef = useRef(null);
 
-  useEffect(() => {
-    if (error && error !== lastErrorRef.current) {
-      pushToast(error, 'error');
-      lastErrorRef.current = error;
-    }
-    if (!error) lastErrorRef.current = null;
-  }, [error]);
+  // Note: chat errors render inline inside ChatWindow with a Retry button,
+  // so we don't push them as toasts too — having both was redundant.
 
   useKeyboardShortcuts({
     onNewChat: () => { startNewChat(); setMobileSidebarOpen(false); },

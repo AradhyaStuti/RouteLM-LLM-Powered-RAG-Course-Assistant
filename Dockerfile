@@ -40,11 +40,11 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 
 # Build the FAISS-ready embeddings.joblib from the committed chunk JSON files.
 # Doing this at build time (instead of shipping the binary in git) keeps the
-# repo text-only and aligns the index with the runtime embedder.
+# repo text-only and aligns the index with the runtime embedder. The Python
+# helper loops over all corpora in one process so the bge-m3 model is loaded
+# once instead of per call.
 WORKDIR /app/data
-RUN python preprocess_json.py --course ml-andrew-ng-c1     --input jsons.json              --embedder sentence_transformers --replace && \
-    python preprocess_json.py --course genai-rag-langchain --input genai_rag_chunks.json   --embedder sentence_transformers && \
-    python preprocess_json.py --course ds-python-libraries --input ds_python_chunks.json   --embedder sentence_transformers
+RUN EMBEDDER=sentence_transformers python build_all_embeddings.py
 WORKDIR /app
 
 EXPOSE 7860

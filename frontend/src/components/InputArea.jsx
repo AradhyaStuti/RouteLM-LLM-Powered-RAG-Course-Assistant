@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo } from 'react';
-import { ArrowUp, Square, Mic, MicOff, Globe } from 'lucide-react';
+import { ArrowUp, Square, Mic, MicOff, Globe, AlertCircle } from 'lucide-react';
 import { useSpeechToText, getStoredLang, setStoredLang } from '../hooks/useVoice';
 
 const MAX_LENGTH = 2000;
@@ -37,7 +37,7 @@ export default memo(function InputArea({ onSend, disabled, onCancel, inputRef, f
   // Voice input: interim transcripts stream into the textarea; the final
   // transcript triggers send. Callbacks update `text` directly so we don't
   // need a state-mirroring effect.
-  const { listening, start: startListening, stop: stopListening, supported: voiceSupported } =
+  const { listening, start: startListening, stop: stopListening, supported: voiceSupported, error: voiceError } =
     useSpeechToText({
       lang: voiceLang,
       onInterim: (live) => setText(live),
@@ -48,6 +48,21 @@ export default memo(function InputArea({ onSend, disabled, onCancel, inputRef, f
     if (listening) stopListening();
     else startListening();
   };
+
+  // Ctrl/Cmd + M toggles voice input from anywhere in the chat.
+  useEffect(() => {
+    if (!voiceSupported) return;
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'm' || e.key === 'M')) {
+        e.preventDefault();
+        toggleVoice();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+    // toggleVoice closes over `listening`; rebind on changes so it sees latest.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listening, voiceSupported]);
 
   const cycleLang = () => {
     const next = VOICE_LANGS[(VOICE_LANGS.findIndex(l => l.code === voiceLang) + 1) % VOICE_LANGS.length];
@@ -76,7 +91,17 @@ export default memo(function InputArea({ onSend, disabled, onCancel, inputRef, f
 
   return (
     <div className="input-area">
-      <div className="input-wrapper">
+      {voiceError && (
+        <div className="voice-error" role="alert">
+          <AlertCircle size={12} aria-hidden="true" />
+          <span>{voiceError === 'not-allowed'
+            ? 'Microphone access denied. Enable it in your browser settings to use voice.'
+            : voiceError === 'no-speech'
+            ? 'No speech detected — tap the mic and try again.'
+            : `Voice error: ${voiceError}`}</span>
+        </div>
+      )}
+      <div className={`input-wrapper ${listening ? 'listening' : ''}`}>
         <textarea
           ref={ref}
           value={text}
@@ -96,7 +121,7 @@ export default memo(function InputArea({ onSend, disabled, onCancel, inputRef, f
             onClick={toggleVoice}
             disabled={disabled}
             aria-label={listening ? 'Stop voice input' : 'Start voice input'}
-            title={listening ? 'Stop voice input' : `Voice input (${currentLangShort})`}
+            title={listening ? 'Stop voice input' : `Voice input · ${currentLangShort} · ${MOD}+M`}
           >
             {listening ? <MicOff size={16} aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />}
           </button>
@@ -120,7 +145,8 @@ export default memo(function InputArea({ onSend, disabled, onCancel, inputRef, f
       </div>
       <div className="input-footer">
         <p className="input-hint">
-          <kbd>Enter</kbd> send · <kbd>Shift+Enter</kbd> newline · <kbd>{MOD}+N</kbd> new chat · <kbd>{MOD}+/</kbd> focus
+          <kbd>Enter</kbd> send · <kbd>Shift+Enter</kbd> newline · <kbd>{MOD}+N</kbd> new chat
+          {voiceSupported && <> · <kbd>{MOD}+M</kbd> voice</>}
         </p>
         <div className="input-footer-right">
           {voiceSupported && (

@@ -4,12 +4,12 @@ import RobotAvatar from './RobotAvatar';
 const suggestions = [
   { icon: <Brain size={14} />, text: 'What is supervised learning?' },
   { icon: <Workflow size={14} />, text: 'Gradient descent ko simple words me samjhao' },
-  { icon: <Database size={14} />, text: 'What is RAG and why use it?' },
-  { icon: <Network size={14} />, text: 'Self-attention kaise kaam karta hai?' },
-  { icon: <Layers size={14} />, text: 'What is LangGraph used for?' },
-  { icon: <Code2 size={14} />, text: 'Pandas groupby ka use kaise karte hain?' },
-  { icon: <BarChart3 size={14} />, text: 'Random forest vs XGBoost — when to use which?' },
-  { icon: <Boxes size={14} />, text: 'What are scikit-learn pipelines?' },
+  { icon: <Database size={14} />, text: 'Explain ACID properties in DBMS' },
+  { icon: <Network size={14} />, text: 'TCP vs UDP — kab kaunsa use karein?' },
+  { icon: <Layers size={14} />, text: 'How does CPU scheduling work?' },
+  { icon: <Code2 size={14} />, text: 'Dynamic programming kya hota hai?' },
+  { icon: <BarChart3 size={14} />, text: 'What is the CIA triad in cyber security?' },
+  { icon: <Boxes size={14} />, text: 'IaaS vs PaaS vs SaaS — difference?' },
 ];
 
 export default function WelcomeScreen({ onSuggestionClick }) {

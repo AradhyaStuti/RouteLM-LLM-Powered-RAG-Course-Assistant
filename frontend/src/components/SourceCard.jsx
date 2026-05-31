@@ -57,7 +57,14 @@ export default memo(function SourceCard({ sources }) {
                   {formatTime(s.start)} - {formatTime(s.end)}
                 </div>
               )}
-              {s.text && <p className="source-text">{s.text.slice(0, 100)}</p>}
+              {s.text && (
+                <p
+                  className="source-text"
+                  title={s.text}
+                >
+                  {s.text.slice(0, 280)}{s.text.length > 280 ? '…' : ''}
+                </p>
+              )}
             </div>
           );
         })}
