@@ -1836,3 +1836,15 @@ body {
   .subject-card { flex: 0 0 165px; padding: 12px; }
   .subject-card-icon { width: 32px; height: 32px; }
 }
+
+/* ===== LANDING-PAGE SUBJECT SLIDER ===== */
+.landing-subjects-header {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 28px;
+}
+.landing-subjects-scroll {
+  width: 100%;
+  max-width: 720px;
+  margin-bottom: 8px;
+}
