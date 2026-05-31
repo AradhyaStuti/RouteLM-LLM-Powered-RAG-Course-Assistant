@@ -12,19 +12,24 @@ short_description: Routes questions before RAG. Three corpora, LangGraph.
 
 # RouteLM
 
-LLM course assistant that classifies a question before retrieval. The classifier sends the query to one of three paths: RAG with citations, LLM-only, or a fixed refusal. Off-topic questions never reach the retrieval pipeline at all.
+An engineering study buddy for students who can't always afford coaching or a tutor on call. Voice and text. English, Hindi, or Hinglish. Routes every question to the right answer path before doing RAG, so the assistant doesn't make things up when it doesn't know.
 
-LLM is hosted (Groq), embeddings are hosted (Ollama). Everything around them I built myself - routing, retrieval, multi-corpus indexing, the React UI, the reliability layer, the eval.
+LLM is hosted (Groq), embeddings run locally via sentence-transformers in production. Everything around them I built myself — routing, retrieval, multi-corpus indexing, voice in/out, the React UI, the reliability layer, the eval.
 
-Demo login: `demo` / password from `DEMO_USER_PASSWORD` (auto-seeded with `SEED_DEMO_USER=true`).
+**Live demo:** `https://aradhyastuti-routelm.hf.space` · Login `demo` / password set via `DEMO_USER_PASSWORD`.
 
 ![Demo](docs/demo.gif)
 
-## Why
+## Why this exists
 
-Plain RAG chatbots felt confidently wrong in a very specific way. Ask something off-topic and they'd still retrieve chunks and attach "Sources" to an answer that wasn't grounded at all. That's worse than being wrong, because it looks correct.
+Indian engineering students study in Hindi and English; they ask doubts in Hinglish; they don't always have a senior to call at 11 PM the night before an exam. Existing course chatbots are English-only, text-only, and fail in two specific ways:
 
-The actual problem is that retrieval has no idea whether a question even belongs to the corpus. So instead of "retrieve then hope," I flipped it - decide first, then act. Make relevance a first-class step, not something assumed after the fact.
+1. **Confidently wrong on off-topic.** Ask anything off-topic and they cheerfully attach five "Sources" to a fake answer. That's worse than being wrong, because it looks correct.
+2. **Locked to one input modality and one language.** Typing in English. That's it.
+
+RouteLM fixes both. Routing happens before retrieval, so off-topic questions never get fake citations. Voice input/output works in English and Hindi via the browser's Web Speech API. The LLM is prompted to match the student's language — including Hinglish.
+
+So instead of "retrieve then hope," it's "decide first, then act." Relevance is a first-class step.
 
 Three paths:
 
@@ -100,6 +105,8 @@ Each node is a Python function reading/writing a `TypedDict`. The conditional ed
 - WebSocket primary, SSE fallback (both transports tested)
 - Circuit breaker on the LLM (3 fails -> 30s cooldown -> half-open)
 - Rate limits via slowapi: 5/min register, 10/min login, 20/min chat (one shared limiter across all routes)
+- Voice in (Web Speech `SpeechRecognition`) + voice out (Web Speech `SpeechSynthesis`); English `en-IN` and Hindi `hi-IN`
+- Multilingual prompting: LLM replies in the student's language (EN / HI / Hinglish); technical terms stay in English
 - Tests: pytest backend + Vitest frontend; all passing locally. CI runs the embedding-free subset (the rest skip via `@requires_embeddings` when Ollama isn't reachable).
 
 ## Results

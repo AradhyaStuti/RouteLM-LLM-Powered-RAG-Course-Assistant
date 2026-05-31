@@ -40,7 +40,8 @@ describe('WelcomeScreen', () => {
   it('renders suggestion buttons', () => {
     render(<WelcomeScreen onSuggestionClick={() => {}} />);
     expect(screen.getByText('What is supervised learning?')).toBeInTheDocument();
-    expect(screen.getByText('Explain gradient descent simply')).toBeInTheDocument();
+    // Hinglish suggestion (gradient descent) — exact match against the new copy.
+    expect(screen.getByText(/Gradient descent ko simple words me samjhao/i)).toBeInTheDocument();
   });
 });
 

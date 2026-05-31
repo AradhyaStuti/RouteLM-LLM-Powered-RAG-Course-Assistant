@@ -5,7 +5,7 @@
       "name": "Andrew Ng — Machine Learning Specialization (Course 1)",
       "short": "ML Course 1",
       "course_threshold": 0.60,
-      "general_threshold": 0.50,
+      "general_threshold": 0.42,
       "anchors": [
         "supervised learning",
         "unsupervised learning",
@@ -32,7 +32,7 @@
       "name": "Data Science with Python",
       "short": "DS / Python",
       "course_threshold": 0.58,
-      "general_threshold": 0.50,
+      "general_threshold": 0.42,
       "anchors": [
         "Python",
         "list comprehension",
@@ -94,7 +94,7 @@
       "name": "GenAI, RAG & the LangChain Stack",
       "short": "GenAI / RAG",
       "course_threshold": 0.60,
-      "general_threshold": 0.50,
+      "general_threshold": 0.42,
       "anchors": [
         "large language model",
         "LLM",

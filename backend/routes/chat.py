@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 OFF_TOPIC_REPLY = (
-    "That question is outside what I'm set up to answer. I cover the indexed "
-    "courses only — **Andrew Ng's ML Specialization**, the **LangChain / RAG / "
-    "GenAI stack**, and **Python data science** (NumPy, pandas, scikit-learn). "
-    "Ask me something in those areas and I'll do my best."
+    "That looks outside engineering / CS, which is what I'm built for. "
+    "I cover **machine learning**, the **LLM / RAG / LangChain stack**, "
+    "**Python data science**, and adjacent engineering topics. Try something "
+    "in those areas — questions in **English, Hindi, or Hinglish** are fine."
 )
 
 

@@ -23,7 +23,7 @@ export default function LandingScreen({ username, onStart, onLogout }) {
 
         <h1 className="landing-title">RouteLM</h1>
         <p className="landing-subtitle">
-          Hey <strong>{username}</strong> — ask about Andrew Ng's ML course, the modern LLM / RAG stack, or Python data science. I'll figure out which corpus to use.
+          Hey <strong>{username}</strong> — your engineering study buddy. Ask in <strong>English, Hindi, or Hinglish</strong>, type or speak. Deep coverage of ML, LLM/RAG, and Python data science; broader engineering topics handled too.
         </p>
 
         <button className="landing-start-btn" onClick={onStart}>

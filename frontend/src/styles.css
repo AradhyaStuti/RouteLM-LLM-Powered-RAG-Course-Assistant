@@ -1626,3 +1626,59 @@ body {
   font-size: 10px;
   color: var(--text-secondary);
 }
+
+/* ===== VOICE INPUT / OUTPUT ===== */
+.mic-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+.mic-btn:hover:not(:disabled) {
+  background: var(--accent-soft, rgba(139, 92, 246, 0.12));
+  color: var(--accent, #a78bfa);
+}
+.mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mic-btn.listening {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.voice-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.voice-lang-btn:hover { color: var(--accent, #a78bfa); border-color: var(--accent, #a78bfa); }
+
+.input-footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.msg-action-btn.speaking {
+  color: var(--accent, #a78bfa);
+}

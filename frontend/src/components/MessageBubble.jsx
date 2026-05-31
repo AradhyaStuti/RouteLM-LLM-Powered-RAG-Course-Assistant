@@ -1,9 +1,23 @@
 import { memo, useState } from 'react';
-import { User, Copy, Check, RefreshCw } from 'lucide-react';
+import { User, Copy, Check, RefreshCw, Volume2, VolumeX } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import SourceCard from './SourceCard';
 import PipelineStatus from './PipelineStatus';
 import RobotAvatar from './RobotAvatar';
+import { useTextToSpeech, getStoredLang } from '../hooks/useVoice';
+
+// Strip markdown formatting tokens so TTS doesn't read "asterisk asterisk
+// gradient descent asterisk asterisk". Keeps the spoken output natural.
+function stripMarkdown(s) {
+  return s
+    .replace(/```[\s\S]*?```/g, ' code block ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/#+\s/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+}
 
 function formatTimestamp(ts) {
   if (!ts) return '';
@@ -14,12 +28,18 @@ function formatTimestamp(ts) {
 export default memo(function MessageBubble({ message, isStreaming, activeNode, isLast, onRegenerate }) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'user';
+  const { speak, cancel: stopSpeaking, speaking, supported: ttsSupported } = useTextToSpeech();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const handleSpeak = () => {
+    if (speaking) { stopSpeaking(); return; }
+    speak(stripMarkdown(message.content), { lang: getStoredLang() });
   };
 
   // While the assistant is streaming, `aria-busy` tells assistive tech to
@@ -70,6 +90,16 @@ export default memo(function MessageBubble({ message, isStreaming, activeNode, i
               {copied ? <Check size={13} /> : <Copy size={13} />}
               {copied ? 'Copied' : 'Copy'}
             </button>
+            {ttsSupported && (
+              <button
+                className={`msg-action-btn ${speaking ? 'speaking' : ''}`}
+                onClick={handleSpeak}
+                aria-label={speaking ? 'Stop reading aloud' : 'Read aloud'}
+              >
+                {speaking ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                {speaking ? 'Stop' : 'Listen'}
+              </button>
+            )}
             {isLast && onRegenerate && (
               <button className="msg-action-btn" onClick={onRegenerate} aria-label="Regenerate response">
                 <RefreshCw size={13} />

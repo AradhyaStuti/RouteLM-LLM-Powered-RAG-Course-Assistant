@@ -24,7 +24,7 @@ export default function AuthScreen({ onLogin, onRegister, error, loading }) {
         <div className="auth-header">
           <RobotMascot size={100} />
           <h1>RouteLM</h1>
-          <p>RAG-Powered Course Assistant</p>
+          <p>Engineering Study Buddy · EN · हिं</p>
         </div>
 
         <div className="auth-tabs">

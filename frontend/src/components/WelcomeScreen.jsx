@@ -3,12 +3,12 @@ import RobotAvatar from './RobotAvatar';
 
 const suggestions = [
   { icon: <Brain size={14} />, text: 'What is supervised learning?' },
-  { icon: <Workflow size={14} />, text: 'Explain gradient descent simply' },
+  { icon: <Workflow size={14} />, text: 'Gradient descent ko simple words me samjhao' },
   { icon: <Database size={14} />, text: 'What is RAG and why use it?' },
-  { icon: <Network size={14} />, text: 'How does self-attention work in transformers?' },
+  { icon: <Network size={14} />, text: 'Self-attention kaise kaam karta hai?' },
   { icon: <Layers size={14} />, text: 'What is LangGraph used for?' },
-  { icon: <Code2 size={14} />, text: 'How do I use pandas groupby?' },
-  { icon: <BarChart3 size={14} />, text: 'When should I use random forest vs XGBoost?' },
+  { icon: <Code2 size={14} />, text: 'Pandas groupby ka use kaise karte hain?' },
+  { icon: <BarChart3 size={14} />, text: 'Random forest vs XGBoost — when to use which?' },
   { icon: <Boxes size={14} />, text: 'What are scikit-learn pipelines?' },
 ];
 
@@ -19,11 +19,11 @@ export default function WelcomeScreen({ onSuggestionClick }) {
         <RobotAvatar size={48} />
         <div>
           <h2>RouteLM</h2>
-          <p>Ask about ML, the LLM/RAG stack, or Python data science — I'll route to the right corpus.</p>
+          <p>Ask in English, Hindi, or Hinglish. Type or tap the mic. I'll route your question to the right corpus.</p>
         </div>
       </div>
 
-      <h3>Suggestions</h3>
+      <h3>Try one of these</h3>
       <div className="suggestions">
         {suggestions.map((s) => (
           <button
