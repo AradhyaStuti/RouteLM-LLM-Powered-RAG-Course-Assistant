@@ -1,95 +1,159 @@
-RouteLM
+# RouteLM – Multilingual AI Study Assistant for Engineering Students
 
-An AI study assistant built for engineering students who switch between English, Hindi, and Hinglish while studying. Instead of blindly retrieving documents for every query, RouteLM first decides whether a question is relevant, then chooses the appropriate response path. This prevents hallucinated answers and fake citations for off-topic questions.
+RouteLM is an intelligent study assistant designed specifically for engineering and computer science students who naturally switch between English, Hindi, and Hinglish while learning.
 
-The system supports both voice and text interactions, multilingual responses, and retrieval across multiple engineering subjects.
+Unlike traditional Retrieval-Augmented Generation (RAG) systems that retrieve documents for every query, RouteLM introduces a routing-first architecture that determines whether a question is relevant before retrieval begins. This prevents hallucinated answers, eliminates irrelevant citations, and significantly improves response reliability.
 
-Key Features
-Built a routing-first RAG architecture using LangGraph.
-Supports English, Hindi, and Hinglish conversations.
-Voice input/output using browser speech APIs.
-Retrieves answers from 15 engineering and computer science knowledge bases.
-Prevents off-topic hallucinations by classifying queries before retrieval.
-Real-time streaming responses via WebSockets and SSE.
-User authentication, chat history, and conversation management.
-What Makes It Different
+The platform supports both text and voice interactions, multilingual conversations, real-time streaming responses, and retrieval across multiple engineering domains.
 
-Most educational chatbots retrieve documents for every query, even when the question is unrelated to the available knowledge base. This often leads to confident but incorrect answers backed by irrelevant citations.
+---
 
-RouteLM introduces a routing layer before retrieval:
+## Key Features
 
-Course-related queries → Answered using FAISS-based RAG with citations.
-General academic queries → Answered directly by the LLM with a disclaimer.
-Off-topic queries → Rejected instantly without retrieval or LLM generation.
+* Routing-first RAG architecture built with LangGraph
+* Supports English, Hindi, and Hinglish conversations
+* Voice input and output using browser speech APIs
+* Retrieval across 15 engineering and computer science subjects
+* Prevents off-topic hallucinations through intelligent query classification
+* Real-time response streaming using WebSockets and Server-Sent Events (SSE)
+* User authentication and secure session management
+* Persistent chat history and conversation tracking
+* Fast response times with optimized retrieval pipelines
 
-This design reduced off-topic citation leakage from 100% to 0% during evaluation while maintaining answer quality for relevant queries.
+---
 
-Knowledge Base
+## Why RouteLM?
 
-Indexed approximately 760 chunks across 15 engineering and computer science domains, including:
+Most educational chatbots retrieve documents for every incoming query, regardless of whether the question is related to the available knowledge base. This often produces confident but misleading answers supported by irrelevant citations.
 
-Machine Learning
-Generative AI & RAG
-Data Structures & Algorithms
-Operating Systems
-DBMS
-Computer Networks
-Software Engineering
-Artificial Intelligence
-Compiler Design
-Cyber Security
-Cloud Computing
-Web Development
-Programming Fundamentals
-Routing Methodology
+RouteLM solves this problem by introducing a routing layer before retrieval.
 
-Each course is represented by a set of semantic anchor phrases embedded using BGE-M3.
+### Query Routing Workflow
+
+#### 1. Course-Related Queries
+
+* Routed to a FAISS-powered RAG pipeline
+* Retrieves relevant documents
+* Generates grounded responses with source citations
+
+#### 2. General Academic Queries
+
+* Answered directly by the language model
+* Includes a transparency disclaimer indicating that no course material was retrieved
+
+#### 3. Off-Topic Queries
+
+* Rejected immediately
+* No retrieval performed
+* No unnecessary LLM generation
+
+This architecture reduced off-topic citation leakage from 100% to 0% during evaluation while maintaining answer quality for relevant queries.
+
+---
+
+## Knowledge Base
+
+RouteLM currently indexes approximately 760 semantic chunks distributed across 15 engineering and computer science domains:
+
+* Machine Learning
+* Artificial Intelligence
+* Generative AI & RAG
+* Data Structures & Algorithms
+* Operating Systems
+* Database Management Systems (DBMS)
+* Computer Networks
+* Software Engineering
+* Compiler Design
+* Cyber Security
+* Cloud Computing
+* Web Development
+* Programming Fundamentals
+* System Design
+* Computer Science Foundations
+
+---
+
+## Routing Methodology
+
+Each subject domain is represented using a collection of carefully curated semantic anchor phrases embedded with BGE-M3.
 
 For every incoming query:
 
-Generate the query embedding.
-Compare it against all anchor embeddings.
-Select the highest similarity score.
-Route the query based on course-specific thresholds.
+1. Generate the query embedding.
+2. Compare it against all anchor embeddings.
+3. Identify the highest similarity score.
+4. Apply course-specific routing thresholds.
+5. Route the query to the appropriate response path.
 
-Instead of using centroid embeddings, RouteLM uses a maximum-anchor similarity strategy, which significantly improved separation between relevant and irrelevant queries.
+### Maximum-Anchor Similarity Strategy
 
-Tech Stack
+Instead of relying on centroid embeddings, RouteLM uses a maximum-anchor similarity approach. A query is matched against individual anchor concepts, allowing more precise separation between relevant and irrelevant questions.
 
-Backend
+This strategy significantly improved routing accuracy and reduced false-positive retrievals.
 
-FastAPI
-LangGraph
-SQLite (WAL mode)
-FAISS
-JWT Authentication
+---
 
-AI Stack
+## System Architecture
 
-Groq (Llama 3.3 70B)
-Ollama
-BGE-M3 Embeddings
-Sentence Transformers
+### Backend
 
-Frontend
+* FastAPI
+* LangGraph
+* SQLite (WAL Mode)
+* FAISS
+* JWT Authentication
 
-React
-Vite
+### AI Stack
 
-Infrastructure
+* Groq (Llama 3.3 70B)
+* Ollama
+* BGE-M3 Embeddings
+* Sentence Transformers
 
-WebSockets & SSE
-Circuit Breaker Pattern
-Rate Limiting
-Docker
-Results
-18/18 routing evaluation queries classified correctly.
-Typical end-to-end response latency between 1–2 seconds.
-Eliminated off-topic source leakage without reducing retrieval accuracy.
-Supports multilingual and voice-based interactions.
-Future Improvements
-Cross-encoder reranking
-Hybrid search (BM25 + Dense Retrieval)
-Dynamic document ingestion
-Automated RAG evaluation and monitoring
-Ambiguous-query rerouting using a secondary decision layer
+### Frontend
+
+* React
+* Vite
+
+### Infrastructure
+
+* Docker
+* WebSockets
+* Server-Sent Events (SSE)
+* Circuit Breaker Pattern
+* Rate Limiting
+
+---
+
+## Performance & Results
+
+* 18/18 routing evaluation queries classified correctly
+* Typical end-to-end response latency: 1–2 seconds
+* Eliminated off-topic citation leakage
+* Maintained retrieval quality for relevant queries
+* Supports multilingual and voice-based interactions
+
+---
+
+## Future Enhancements
+
+* Cross-Encoder Re-ranking
+* Hybrid Search (BM25 + Dense Retrieval)
+* Dynamic Knowledge Base Ingestion
+* Automated RAG Evaluation Framework
+* Observability & Monitoring Dashboard
+* Multi-Agent Query Routing
+* Ambiguous Query Re-routing Layer
+* Personalized Learning Context and Memory
+
+---
+
+## Core Innovation
+
+The key innovation behind RouteLM is its routing-first retrieval strategy.
+
+Rather than asking, *"Which documents should I retrieve?"*, RouteLM first asks:
+
+> "Should retrieval happen at all?"
+
+By making relevance determination the first step of the pipeline, the system avoids unnecessary retrieval, prevents misleading citations, reduces hallucinations, and delivers a more trustworthy educational experience for engineering students.
